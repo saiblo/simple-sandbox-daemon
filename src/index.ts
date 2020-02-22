@@ -3,7 +3,7 @@ import util = require('util');
 import { startSandbox, SandboxResult } from 'simple-sandbox/lib/index';
 import { globalConfig } from './config';
 import sleep = require('sleep-promise');
-import fs_extra = require('fs-extra');
+import fs = require('fs-extra');
 import posix = require('posix');
 
 const io = require('socket.io')();
@@ -16,20 +16,20 @@ io.on('connection', (socket: any) => {
 
         const sandboxedProcess = await startSandbox(data.args);
 
-        // await fs_extra.chown('/sys/fs/cgroup/freezer/' + sandboxedProcess.parameter.cgroup + '/tasks', user.uid, user.gid);
-        // await fs_extra.chown('/sys/fs/cgroup/freezer/' + sandboxedProcess.parameter.cgroup + '/freezer.state', user.uid, user.gid);
-        // await fs_extra.chmod('/sys/fs/cgroup/freezer/' + sandboxedProcess.parameter.cgroup, 0o777);
+        // await fs.chown('/sys/fs/cgroup/freezer/' + sandboxedProcess.parameter.cgroup + '/tasks', user.uid, user.gid);
+        // await fs.chown('/sys/fs/cgroup/freezer/' + sandboxedProcess.parameter.cgroup + '/freezer.state', user.uid, user.gid);
+        // await fs.chmod('/sys/fs/cgroup/freezer/' + sandboxedProcess.parameter.cgroup, 0o777);
 
         winston.info('Sandbox [' + data.uuid + '] started, PID: ' + sandboxedProcess.pid);
 
-        await fs_extra.promises.mkdir('/sys/fs/cgroup/freezer/' + sandboxedProcess.parameter.cgroup, { recursive: true });
+        await fs.promises.mkdir('/sys/fs/cgroup/freezer/' + sandboxedProcess.parameter.cgroup, { recursive: true });
         callback(sandboxedProcess.pid, sandboxedProcess.parameter.cgroup);
 
         sandboxedProcess.waitForStop().then(async (result: SandboxResult) => {
             winston.info('Sandbox [' + data.uuid + '] ended');
             socket.emit("sandboxEnded", data.uuid, result, async () => {
                 // winston.info('Sandbox [' + data.uuid + '] ended infomation has benn received');
-                await fs_extra.promises.rmdir('/sys/fs/cgroup/freezer/' + sandboxedProcess.parameter.cgroup, { recursive: true });
+                await fs.promises.rmdir('/sys/fs/cgroup/freezer/' + sandboxedProcess.parameter.cgroup, { recursive: true });
             });
         });
     });
