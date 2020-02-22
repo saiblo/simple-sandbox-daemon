@@ -1,0 +1,35 @@
+{
+  "name": "simple-sandbox-daemon",
+  "version": "1.0.0",
+  "description": "A node daemon for simple-sandbox",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.json"
+  },
+  "author": "Sengxian",
+  "license": "ISC",
+  "dependencies": {
+    "command-line-args": "^5.1.1",
+    "fs-extra": "^8.1.0",
+    "loadash": "^1.0.0",
+    "posix": "^4.2.0",
+    "simple-sandbox": "^0.3.9",
+    "sleep-promise": "^8.0.1",
+    "socket.io": "^2.3.0",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^13.7.4",
+    "@types/uuid": "^3.4.7",
+    "prettier": "^1.19.1",
+    "tslint": "^6.0.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.7.5"
+  },
+  "files": [
+    "lib /**/*"
+  ]
+}
