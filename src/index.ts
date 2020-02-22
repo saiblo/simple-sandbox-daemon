@@ -1,13 +1,12 @@
 import winston = require('winston');
 import util = require('util');
 import { startSandbox, SandboxResult } from 'simple-sandbox/lib/index';
-import { globalConfig as Cfg, globalConfig } from './config';
+import { globalConfig } from './config';
 import sleep = require('sleep-promise');
 import fs_extra = require('fs-extra');
 import posix = require('posix');
-import { CLIENT_RENEG_WINDOW } from 'tls';
 
-var io = require('socket.io')();
+const io = require('socket.io')();
 
 io.on('connection', (socket: any) => {
     winston.info('Connected');
