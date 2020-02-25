@@ -3,13 +3,15 @@ import commandLineArgs = require('command-line-args');
 import fs = require('fs');
 import winston = require('winston');
 import { configureWinston } from './winston-common';
+import { plainToClass, Type } from "class-transformer";
 
-export interface ConfigStructure {
-    hostname: string,
-    port: number,
-    sandboxUser: string,
-    sandboxRoot: string
-    user: string,
+export class Config {
+    hostname: string;
+    port: number;
+    sandboxUser: string;
+    sandboxRoot: string;
+    maxConcurrent: number;
+    taskWorkingDirectories: string[];
 }
 
 const optionDefinitions = [
@@ -19,17 +21,7 @@ const optionDefinitions = [
 
 const options = commandLineArgs(optionDefinitions);
 
-function readJSON(path: string): any {
-    return JSON.parse(fs.readFileSync(path, 'utf8'));
-}
-
-const configJSON = readJSON(options['config']);
-export const globalConfig: ConfigStructure = {
-    hostname: configJSON.hostname,
-    port: configJSON.port,
-    user: configJSON.user,
-    sandboxUser: configJSON.sandboxUser,
-    sandboxRoot: configJSON.sandboxRoot
-}
+const parsedConfig = JSON.parse(fs.readFileSync(options['config']).toString("utf-8"));
+export const globalConfig = plainToClass(Config, parsedConfig);
 
 configureWinston(options.verbose);
