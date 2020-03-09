@@ -1,9 +1,11 @@
 import posix = require("posix");
 import fs = require("fs-extra");
+import path = require("path");
 import klaw = require("klaw");
 import md5 = require('md5');
 import winston = require('winston');
 import deepcopy = require('deepcopy');
+import { MountInfo, SandboxParameter } from '/opt/simple-sandbox/lib/index';
 
 import { globalConfig } from "./config";
 
@@ -36,17 +38,6 @@ export async function ensureDirectoryEmpty(path: string): Promise<void> {
     await fs.emptyDir(path);
 }
 
-export interface MountInfo {
-    // The source path, in the real world.
-    src: string;
-    // The destination path, in the sandbox.
-    dst: string;
-    // The maximum length (in bytes) the sandboxed process may write to the mount.
-    // 0 for readonly; -1 for no limit.
-    // Length limit requires fuse and has not yet been implemented! (Readonly works, however)
-    limit: number;
-}
-
 export async function moveToWorkingDirectory<T>(mounts: MountInfo[], taskWorkingDirectory: string): Promise<MountInfo[]> {
     const realMounts = deepcopy(mounts);
 
@@ -75,4 +66,16 @@ export async function moveFromWorkingDirectory<T>(mounts: MountInfo[], realMount
             winston.debug(`Copy from [${realMounts[i].src}] to [${mounts[i].src}]`)
             await fs.copy(realMounts[i].src, mounts[i].src);
         }
+}
+
+export async function ensureDirectories<T>(args: SandboxParameter): Promise<void> {
+    await Promise.all(args.mounts.map((mountInfo =>
+        Promise.all([
+            fs.ensureDir(mountInfo.src),
+            fs.ensureDir(path.join(args.chroot, mountInfo.dst))
+        ]))));
+}
+
+export async function setDirectoriesPermission<T>(mounts: MountInfo[]): Promise<void> {
+    await Promise.all(mounts.map((mountInfo => setDirectoryPermission(mountInfo.src, mountInfo.limit !== 0))));
 }

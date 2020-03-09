@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
+    "start": "node lib/index.js -c config.json -v",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "tslint -p tsconfig.json"
   },
@@ -22,7 +23,6 @@
     "md5": "^2.2.1",
     "posix": "^4.2.0",
     "promise-queue": "^2.2.5",
-    "simple-sandbox": "^0.3.9",
     "sleep-promise": "^8.0.1",
     "socket.io": "^2.3.0",
     "winston": "^3.2.1"
