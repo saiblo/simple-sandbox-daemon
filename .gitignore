@@ -2,3 +2,4 @@ node_modules
 /lib
 config.json
 tmp
+yarn.lock

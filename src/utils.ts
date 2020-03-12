@@ -3,14 +3,17 @@ import fs = require("fs-extra");
 import path = require("path");
 import klaw = require("klaw");
 import md5 = require('md5');
-import winston = require('winston');
 import deepcopy = require('deepcopy');
 import { MountInfo, SandboxParameter } from '/opt/simple-sandbox/lib/index';
 
-import { globalConfig } from "./config";
+const winston = {
+    debug: message => process.send({ type: "debug", data: message }),
+    info: message => process.send({ type: "info", data: message }),
+    error: message => process.send({ type: "error", data: message })
+}
 
 export async function setDirectoryPermission(dirName: string, writeAccess: boolean): Promise<void> {
-    const user = posix.getpwnam(globalConfig.sandboxUser);
+    const user = posix.getpwnam("nobody");
     const operations: Promise<void>[] = [];
     return await new Promise((res, rej) => {
         klaw(dirName)
@@ -36,6 +39,11 @@ export async function setDirectoryPermission(dirName: string, writeAccess: boole
 export async function ensureDirectoryEmpty(path: string): Promise<void> {
     await fs.ensureDir(path);
     await fs.emptyDir(path);
+}
+
+export function ensureDirectoryEmptySync(path: string) {
+    fs.ensureDirSync(path);
+    fs.emptyDirSync(path);
 }
 
 export async function moveToWorkingDirectory<T>(mounts: MountInfo[], taskWorkingDirectory: string): Promise<MountInfo[]> {
