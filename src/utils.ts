@@ -87,3 +87,11 @@ export async function ensureDirectories<T>(args: SandboxParameter): Promise<void
 export async function setDirectoriesPermission<T>(mounts: MountInfo[]): Promise<void> {
     await Promise.all(mounts.map((mountInfo => setDirectoryPermission(mountInfo.src, mountInfo.limit !== 0))));
 }
+
+export async function openAllFIFO(args: any) {
+    return Promise.all([
+        fs.open(args.stdin, 'r'),
+        fs.open(args.stdout, 'w'),
+        fs.open(args.stderr, 'w')
+    ]);
+}

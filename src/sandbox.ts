@@ -1,6 +1,7 @@
 import { startSandbox, SandboxResult, MountInfo } from '/opt/simple-sandbox/lib/index';
-import { moveFromWorkingDirectory, moveToWorkingDirectory, ensureDirectories, setDirectoriesPermission } from './utils';
+import { moveFromWorkingDirectory, moveToWorkingDirectory, ensureDirectories, setDirectoriesPermission, openAllFIFO } from './utils';
 import { SandboxProcess } from '/opt/simple-sandbox/lib/sandboxProcess';
+import { timeout, TimeoutError } from 'promise-timeout';
 
 const winston = {
     debug: message => process.send({ type: "debug", data: message }),
@@ -8,10 +9,11 @@ const winston = {
     error: message => process.send({ type: "error", data: message })
 }
 
-const task = async () => {
-    const data = JSON.parse(process.argv[2])
-    const taskWorkingDirectory: string | null = process.argv[3]
+let sandboxedProcess: SandboxProcess | null = null;
+const data = JSON.parse(process.argv[2]);
+const taskWorkingDirectory: string | null = process.argv[3];
 
+const task = async () => {
     if (taskWorkingDirectory === null) {
         winston.debug('No working directory needed for request [' + data.uuid + ']');
     } else {
@@ -20,7 +22,6 @@ const task = async () => {
 
     const mounts: MountInfo[] = data.args.mounts;
     let realMounts: MountInfo[];
-    let sandboxedProcess: SandboxProcess;
 
     try {
         await ensureDirectories(data.args);
@@ -30,7 +31,17 @@ const task = async () => {
         }
         await setDirectoriesPermission(data.args.mounts);
         winston.debug(JSON.stringify(data.args));
+
+        try {
+            [data.args.stdin, data.args.stdout, data.args.stderr] = await timeout(openAllFIFO(data.args), 10000)
+        } catch (err) {
+            if (err instanceof TimeoutError)
+                throw Error("Open FIFO timeout.");
+            else throw err;
+        }
+
         sandboxedProcess = startSandbox(data.args);
+        winston.info('Sandbox [' + data.uuid + '] started');
     } catch (e) {
         winston.error('Sandbox [' + data.uuid + '] start failed, reason: ' + e.message);
         process.send({
@@ -65,6 +76,25 @@ const task = async () => {
     process.disconnect();
 }
 
-process.on('disconnect', () => process.exit());
+process.on('disconnect', () => {
+    winston.info('Killing sandbox [' + data.cgroup + '].');
+    if (sandboxedProcess && sandboxedProcess.running) {
+        winston.info('Killing sandbox [' + data.cgroup + '].');
+    }
+    process.exit()
+});
 
-task()
+process.on('exit', () => {
+    winston.info('Killing sandbox [' + data.cgroup + '].');
+    if (sandboxedProcess && sandboxedProcess.running) {
+        winston.info('Killing sandbox [' + data.cgroup + '].');
+    }
+});
+
+const terminationHandler = () => {
+};
+
+process.on('SIGTERM', terminationHandler);
+process.on('SIGINT', terminationHandler);
+
+task();
