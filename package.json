@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/md5": "^2.1.33",
-    "class-transformer": "^0.2.3",
+    "class-transformer": "^0.3.1",
     "command-line-args": "^5.1.1",
     "deepcopy": "^2.0.0",
     "fs-extra": "^8.1.0",
