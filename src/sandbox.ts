@@ -1,6 +1,6 @@
-import { startSandbox, SandboxResult, MountInfo } from '/opt/simple-sandbox/lib/index';
+import { startSandbox, SandboxResult, MountInfo } from '/home/sengxian/saiblo/simple-sandbox/lib/index';
 import { moveFromWorkingDirectory, moveToWorkingDirectory, ensureDirectories, setDirectoriesPermission, openAllFIFO } from './utils';
-import { SandboxProcess } from '/opt/simple-sandbox/lib/sandboxProcess';
+import { SandboxProcess } from '/home/sengxian/saiblo/simple-sandbox/lib/sandboxProcess';
 import { timeout, TimeoutError } from 'promise-timeout';
 
 const winston = {
@@ -11,7 +11,7 @@ const winston = {
 
 let sandboxedProcess: SandboxProcess | null = null;
 const data = JSON.parse(process.argv[2]);
-const taskWorkingDirectory: string | null = process.argv[3];
+const taskWorkingDirectory: string | null = process.argv[3] === "null" ? null : process.argv[3];
 
 const task = async () => {
     if (taskWorkingDirectory === null) {
@@ -33,10 +33,10 @@ const task = async () => {
         winston.debug(JSON.stringify(data.args));
 
         try {
-            [data.args.stdin, data.args.stdout, data.args.stderr] = await timeout(openAllFIFO(data.args), 10000)
+            [data.args.stdin, data.args.stdout, data.args.stderr] = await timeout(openAllFIFO(data.args), 3000)
         } catch (err) {
             if (err instanceof TimeoutError)
-                throw Error("Open FIFO timeout.");
+                throw new Error("Open FIFO timeout.");
             else throw err;
         }
 
@@ -66,12 +66,12 @@ const task = async () => {
             type: "end",
             data: [data.uuid, result]
         })
-    }).catch(err => {
-        winston.error(err);
-        // process.send({
-        // type: "end",
-        // data: [data.uuid, result]
-        // })
+    }).catch(e => {
+        winston.error('Sandbox [' + data.uuid + '] run failed, reason: ' + e.message);
+        process.send({
+            type: "end",
+            data: [data.uuid, null]
+        })
     });
     process.disconnect();
 }

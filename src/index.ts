@@ -8,16 +8,12 @@ const io = require('socket.io')();
 const availableWorkingDirectories = globalConfig.taskWorkingDirectories;
 const queue = new Queue(Math.min(globalConfig.maxConcurrent, availableWorkingDirectories.length));
 
-for (const dir of availableWorkingDirectories) {
-    fs.emptyDirSync(dir);
-}
-
 io.on('connection', (socket: any) => {
     winston.info('Connected');
     socket.on("startSandbox", async (data: any, callback: any) => {
         winston.info('Receive startSandbox request [' + data.uuid + ']');
 
-        let needWorkingDir: boolean = true;
+        let needWorkingDir: boolean = false;
 
         for (const mountInfo of data.args.mounts)
             if (mountInfo.limit !== 0) {
@@ -26,7 +22,7 @@ io.on('connection', (socket: any) => {
 
         if (needWorkingDir) {
             queue.add(async () => {
-                winston.debug(availableWorkingDirectories);
+	        // winston.debug(availableWorkingDirectories);
                 const taskWorkingDirectory = availableWorkingDirectories.pop();
                 try {
                     await task(data, taskWorkingDirectory, socket, callback);
