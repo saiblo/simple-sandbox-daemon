@@ -1,6 +1,6 @@
-import { startSandbox, SandboxResult, MountInfo } from '/home/sengxian/saiblo/simple-sandbox/lib/index';
+import { startSandbox, SandboxResult, MountInfo, SandboxStatus } from 'simple-sandbox/lib/index';
 import { moveFromWorkingDirectory, moveToWorkingDirectory, ensureDirectories, setDirectoriesPermission, openAllFIFO } from './utils';
-import { SandboxProcess } from '/home/sengxian/saiblo/simple-sandbox/lib/sandboxProcess';
+import { SandboxProcess } from 'simple-sandbox/lib/sandboxProcess';
 import { timeout, TimeoutError } from 'promise-timeout';
 
 const winston = {
@@ -68,9 +68,15 @@ const task = async () => {
         })
     }).catch(e => {
         winston.error('Sandbox [' + data.uuid + '] run failed, reason: ' + e.message);
+        const errResult: SandboxResult = {
+            status: SandboxStatus.RuntimeError,
+            time: -1,
+            memory: -1,
+            code: -1
+        };
         process.send({
             type: "end",
-            data: [data.uuid, null]
+            data: [data.uuid, errResult]
         })
     });
     process.disconnect();
