@@ -71,6 +71,8 @@ const task = async () => {
         const errResult: SandboxResult = {
             status: SandboxStatus.RuntimeError,
             time: -1,
+            sys_time: -1,
+            user_time: -1,
             memory: -1,
             code: -1
         };
