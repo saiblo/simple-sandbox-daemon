@@ -1,7 +1,4 @@
 import winston = require('winston');
-import _ = require('lodash');
-import util = require('util');
-
 
 export function configureWinston(verbose: boolean) {
     // winston.configure({
